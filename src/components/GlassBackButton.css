@@ -1,0 +1,83 @@
+.glass-back {
+  position: absolute;
+  z-index: 3;
+  top: max(1rem, env(safe-area-inset-top));
+  left: max(1rem, env(safe-area-inset-left));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  font-family:
+    'DM Sans',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+@media (min-width: 768px) {
+  .glass-back {
+    top: max(1.75rem, env(safe-area-inset-top));
+    left: max(1.75rem, env(safe-area-inset-left));
+    padding: 0.55rem 1.1rem;
+    min-height: 3rem;
+  }
+}
+
+.glass-back__arrow {
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+.glass-back__label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .glass-back__label {
+    font-size: 0.875rem;
+  }
+}
+
+.glass-back__label--mobile {
+  display: inline;
+}
+
+.glass-back__label--desktop {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .glass-back__label--mobile {
+    display: none;
+  }
+
+  .glass-back__label--desktop {
+    display: inline;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .glass-back:hover {
+    border-color: rgba(255, 255, 255, 0.26);
+    background: rgba(22, 24, 30, 0.55);
+  }
+}
+
+.glass-back:active {
+  opacity: 0.94;
+}
+
+.glass-back:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
+}

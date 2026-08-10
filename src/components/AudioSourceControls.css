@@ -1,0 +1,211 @@
+.audio-controls-cluster {
+  position: absolute;
+  z-index: 3;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  left: auto;
+  bottom: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  max-width: min(17.5rem, calc(100vw - 1.25rem));
+  font-family:
+    'DM Sans',
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+@media (min-width: 768px) {
+  .audio-controls-cluster {
+    top: max(1.75rem, env(safe-area-inset-top));
+    right: max(1.75rem, env(safe-area-inset-right));
+    gap: 0.55rem;
+    max-width: min(14rem, calc(100vw - 3rem));
+  }
+}
+
+.audio-control-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  min-height: 2.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  color: rgba(255, 248, 238, 0.96);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.audio-control-pill:visited {
+  color: rgba(255, 248, 238, 0.96);
+}
+
+@media (min-width: 768px) {
+  .audio-control-pill {
+    min-height: 3.25rem;
+    padding: 0.55rem 1.1rem;
+  }
+}
+
+.audio-control-pill--credits .audio-controls__label {
+  flex: 1;
+  min-width: 0;
+}
+
+.audio-controls__label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: currentColor;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 768px) {
+  .audio-controls__label {
+    font-size: 0.875rem;
+  }
+}
+
+.audio-controls__icon {
+  flex-shrink: 0;
+  display: block;
+  color: currentColor;
+  transition: opacity 0.2s ease;
+}
+
+.audio-controls__icon--external {
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.audio-control-pill--muted .audio-controls__icon,
+.audio-control-pill--muted .audio-controls__label {
+  opacity: 0.55;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .audio-control-pill:hover {
+    border-color: rgba(255, 255, 255, 0.26);
+    background: rgba(22, 24, 30, 0.55);
+  }
+}
+
+.audio-control-pill:active {
+  opacity: 0.94;
+}
+
+.audio-control-pill:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
+}
+
+/* Solo train mute reuses segment class names — keep for TrainVideoMuteControl */
+.audio-controls {
+  position: absolute;
+  z-index: 3;
+  top: max(1.5rem, env(safe-area-inset-top));
+  right: max(1.5rem, env(safe-area-inset-right));
+  left: auto;
+  bottom: auto;
+  display: flex;
+  align-items: stretch;
+  width: min(21.25rem, calc(100% - 2rem));
+  min-height: 3rem;
+  max-height: 3.5rem;
+  border-radius: 1rem;
+  overflow: hidden;
+  font-family:
+    'DM Sans',
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+@media (min-width: 768px) {
+  .audio-controls {
+    width: min(21.25rem, calc(100% - 3rem));
+    min-height: 3.25rem;
+    top: max(1.75rem, env(safe-area-inset-top));
+    right: max(1.75rem, env(safe-area-inset-right));
+  }
+}
+
+@media (max-width: 767px) {
+  .audio-controls {
+    width: min(17.5rem, calc(100% - 1.25rem));
+    min-height: 2.875rem;
+    top: max(1rem, env(safe-area-inset-top));
+    right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+.audio-controls__segment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0 0.85rem;
+  border: none;
+  background: transparent;
+  color: rgba(255, 248, 238, 0.96);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  flex: 1 1 0;
+  min-width: 0;
+  transition:
+    background-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.audio-controls__segment--audio {
+  justify-content: flex-start;
+  padding-left: 1rem;
+}
+
+.audio-controls__segment--full {
+  justify-content: flex-start;
+  padding-left: 1rem;
+  padding-right: 1.1rem;
+}
+
+.audio-controls__segment--muted .audio-controls__icon,
+.audio-controls__segment--muted .audio-controls__label {
+  opacity: 0.55;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .audio-controls__segment:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .audio-controls:hover {
+    border-color: rgba(255, 255, 255, 0.26);
+    background: rgba(22, 24, 30, 0.55);
+  }
+}
+
+.audio-controls__segment:active {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.audio-controls__segment:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.45);
+  outline-offset: -1px;
+  z-index: 1;
+}

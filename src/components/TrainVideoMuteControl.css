@@ -1,0 +1,13 @@
+.audio-controls--solo {
+  width: auto;
+  min-width: 10.5rem;
+  max-width: min(17.5rem, calc(100% - 1.25rem));
+}
+
+.audio-controls--solo .audio-controls__segment--full {
+  flex: 1;
+  width: 100%;
+  justify-content: flex-start;
+  padding-left: 1rem;
+  padding-right: 1.1rem;
+}
