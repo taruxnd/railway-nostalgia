@@ -57,18 +57,28 @@ function IconExternalLink() {
   )
 }
 
-export default function AudioSourceControls({ isMuted, onToggleMute }) {
+export default function AudioSourceControls({
+  isBackgroundSilent,
+  onToggleMute,
+}) {
   return (
     <div className="audio-controls-cluster" role="group" aria-label="Experience controls">
       <button
         type="button"
-        className={`audio-control-pill glass-surface audio-control-pill--mute${isMuted ? ' audio-control-pill--muted' : ''}`}
+        className={`audio-control-pill glass-surface audio-control-pill--mute${isBackgroundSilent ? ' audio-control-pill--muted' : ''}`}
         onClick={onToggleMute}
-        aria-label={isMuted ? 'Unmute background' : 'Mute background'}
-        aria-pressed={isMuted}
+        aria-label={
+          isBackgroundSilent ? 'Unmute background' : 'Mute background'
+        }
+        aria-pressed={isBackgroundSilent}
       >
-        <IconSpeaker muted={isMuted} className="audio-controls__icon" />
-        <span className="audio-controls__label">Mute background</span>
+        <IconSpeaker
+          muted={isBackgroundSilent}
+          className="audio-controls__icon"
+        />
+        <span className="audio-controls__label">
+          {isBackgroundSilent ? 'Unmute background' : 'Mute background'}
+        </span>
       </button>
 
       <a

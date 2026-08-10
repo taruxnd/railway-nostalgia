@@ -19,11 +19,17 @@ const AMBIENT_VIEWS = new Set(['platform', 'ticket', 'weight'])
 function App() {
   const isMobile = useIsMobileViewport()
   const audioRef = useRef(null)
-  const [isMuted, setIsMuted] = useState(false)
+  const [isBackgroundSilent, setIsBackgroundSilent] = useState(true)
   const [view, setView] = useState('platform')
   const [weightStep, setWeightStep] = useState('machine')
   const [exploreActiveId, setExploreActiveId] = useState(null)
   const [trainVideoMuted, setTrainVideoMuted] = useState(false)
+
+  const syncBackgroundAudioUi = useCallback(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    setIsBackgroundSilent(audio.paused || audio.muted)
+  }, [])
 
   const startAudio = useCallback(async () => {
     const audio = audioRef.current
@@ -32,34 +38,51 @@ function App() {
     audio.loop = true
     audio.volume = AMBIENT_VOLUME
 
-    if (!audio.paused) {
-      setIsMuted(audio.muted)
-      return
-    }
-
     try {
       audio.muted = false
       await audio.play()
-      setIsMuted(false)
-      return
     } catch {
-      /* blocked with sound — try muted autoplay, then unmute on user gesture */
+      try {
+        audio.muted = true
+        await audio.play()
+      } catch {
+        /* blocked until user interacts */
+      }
     }
 
-    try {
-      audio.muted = true
-      await audio.play()
-      setIsMuted(true)
-    } catch {
-      /* still blocked until user interacts */
-    }
-  }, [])
+    syncBackgroundAudioUi()
+  }, [syncBackgroundAudioUi])
 
   useEffect(() => {
-    if (AMBIENT_VIEWS.has(view)) {
-      startAudio()
+    const audio = audioRef.current
+    if (!audio || isMobile) return
+
+    const onAudioChange = () => syncBackgroundAudioUi()
+
+    audio.addEventListener('play', onAudioChange)
+    audio.addEventListener('pause', onAudioChange)
+    audio.addEventListener('volumechange', onAudioChange)
+
+    const onCanPlay = () => {
+      if (AMBIENT_VIEWS.has(view)) {
+        void startAudio()
+      }
     }
-  }, [view, startAudio])
+
+    audio.addEventListener('canplay', onCanPlay)
+    syncBackgroundAudioUi()
+
+    if (AMBIENT_VIEWS.has(view)) {
+      void startAudio()
+    }
+
+    return () => {
+      audio.removeEventListener('play', onAudioChange)
+      audio.removeEventListener('pause', onAudioChange)
+      audio.removeEventListener('volumechange', onAudioChange)
+      audio.removeEventListener('canplay', onCanPlay)
+    }
+  }, [view, startAudio, syncBackgroundAudioUi, isMobile])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -67,8 +90,11 @@ function App() {
 
     if (view === 'train') {
       audio.pause()
+      syncBackgroundAudioUi()
+    } else if (AMBIENT_VIEWS.has(view)) {
+      void startAudio()
     }
-  }, [view])
+  }, [view, startAudio, syncBackgroundAudioUi])
 
   const togglePlatformMute = async () => {
     const audio = audioRef.current
@@ -77,26 +103,26 @@ function App() {
     audio.loop = true
     audio.volume = AMBIENT_VOLUME
 
-    if (audio.paused) {
+    const shouldTurnOn = audio.paused || audio.muted
+
+    if (shouldTurnOn) {
+      audio.muted = false
       try {
-        audio.muted = false
         await audio.play()
-        setIsMuted(false)
       } catch {
         try {
           audio.muted = true
           await audio.play()
-          setIsMuted(true)
         } catch {
           /* ignore */
         }
       }
+      syncBackgroundAudioUi()
       return
     }
 
-    const nextMuted = !audio.muted
-    audio.muted = nextMuted
-    setIsMuted(nextMuted)
+    audio.muted = true
+    syncBackgroundAudioUi()
   }
 
   const toggleTrainVideoMute = () => {
@@ -169,7 +195,7 @@ function App() {
           />
         ) : (
           <AudioSourceControls
-            isMuted={isMuted}
+            isBackgroundSilent={isBackgroundSilent}
             onToggleMute={togglePlatformMute}
           />
         )}
