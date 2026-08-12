@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import AudioSourceControls from './components/AudioSourceControls'
-import DesktopOnlyScreen from './components/DesktopOnlyScreen'
 import GlassBackButton from './components/GlassBackButton'
-import TrainVideoMuteControl from './components/TrainVideoMuteControl'
 import useIsMobileViewport from './hooks/useIsMobileViewport'
 import PlatformView from './views/PlatformView'
 import WeightMachineExperience from './views/WeightMachineExperience'
@@ -11,28 +9,46 @@ import PhysicalTicketExperience from './views/PhysicalTicketExperience'
 import './styles/glass.css'
 import './App.css'
 
-const AUDIO_SRC = '/assets/audio.mp3'
+const PLATFORM_AUDIO_SRC = '/assets/audio.mp3'
+const TRAIN_AUDIO_SRC = `/assets/${encodeURIComponent(
+  'Inside Train Sound Effects [Free Audio] (Loopable) - Sound Bytes (128k).mp3',
+)}`
 const AMBIENT_VOLUME = 0.22
 
 const AMBIENT_VIEWS = new Set(['platform', 'ticket', 'weight'])
 
 function App() {
   const isMobile = useIsMobileViewport()
-  const audioRef = useRef(null)
+  const platformAudioRef = useRef(null)
+  const trainAudioRef = useRef(null)
   const [isBackgroundSilent, setIsBackgroundSilent] = useState(true)
+  const [isTrainAudioSilent, setIsTrainAudioSilent] = useState(true)
   const [view, setView] = useState('platform')
   const [weightStep, setWeightStep] = useState('machine')
   const [exploreActiveId, setExploreActiveId] = useState(null)
-  const [trainVideoMuted, setTrainVideoMuted] = useState(false)
 
-  const syncBackgroundAudioUi = useCallback(() => {
-    const audio = audioRef.current
+  const syncPlatformAudioUi = useCallback(() => {
+    const audio = platformAudioRef.current
     if (!audio) return
     setIsBackgroundSilent(audio.paused || audio.muted)
   }, [])
 
-  const startAudio = useCallback(async () => {
-    const audio = audioRef.current
+  const syncTrainAudioUi = useCallback(() => {
+    const audio = trainAudioRef.current
+    if (!audio) return
+    setIsTrainAudioSilent(audio.paused || audio.muted)
+  }, [])
+
+  const stopTrainAudio = useCallback(() => {
+    const audio = trainAudioRef.current
+    if (!audio) return
+    audio.pause()
+    audio.currentTime = 0
+    syncTrainAudioUi()
+  }, [syncTrainAudioUi])
+
+  const startPlatformAudio = useCallback(async () => {
+    const audio = platformAudioRef.current
     if (!audio) return
 
     audio.loop = true
@@ -50,54 +66,94 @@ function App() {
       }
     }
 
-    syncBackgroundAudioUi()
-  }, [syncBackgroundAudioUi])
+    syncPlatformAudioUi()
+  }, [syncPlatformAudioUi])
 
-  useEffect(() => {
-    const audio = audioRef.current
-    if (!audio || isMobile) return
+  const startTrainAudio = useCallback(async () => {
+    const audio = trainAudioRef.current
+    if (!audio) return
 
-    const onAudioChange = () => syncBackgroundAudioUi()
+    audio.loop = true
+    audio.volume = AMBIENT_VOLUME
 
-    audio.addEventListener('play', onAudioChange)
-    audio.addEventListener('pause', onAudioChange)
-    audio.addEventListener('volumechange', onAudioChange)
+    if (!audio.paused) {
+      syncTrainAudioUi()
+      return
+    }
 
-    const onCanPlay = () => {
-      if (AMBIENT_VIEWS.has(view)) {
-        void startAudio()
+    try {
+      audio.muted = false
+      await audio.play()
+    } catch {
+      try {
+        audio.muted = true
+        await audio.play()
+      } catch {
+        /* blocked until user interacts */
       }
     }
 
-    audio.addEventListener('canplay', onCanPlay)
-    syncBackgroundAudioUi()
+    syncTrainAudioUi()
+  }, [syncTrainAudioUi])
 
-    if (AMBIENT_VIEWS.has(view)) {
-      void startAudio()
-    }
+  useEffect(() => {
+    const audio = platformAudioRef.current
+    if (!audio) return
+
+    const onAudioChange = () => syncPlatformAudioUi()
+    audio.addEventListener('play', onAudioChange)
+    audio.addEventListener('pause', onAudioChange)
+    audio.addEventListener('volumechange', onAudioChange)
 
     return () => {
       audio.removeEventListener('play', onAudioChange)
       audio.removeEventListener('pause', onAudioChange)
       audio.removeEventListener('volumechange', onAudioChange)
-      audio.removeEventListener('canplay', onCanPlay)
     }
-  }, [view, startAudio, syncBackgroundAudioUi, isMobile])
+  }, [syncPlatformAudioUi])
 
   useEffect(() => {
-    const audio = audioRef.current
+    const audio = trainAudioRef.current
     if (!audio) return
 
-    if (view === 'train') {
-      audio.pause()
-      syncBackgroundAudioUi()
-    } else if (AMBIENT_VIEWS.has(view)) {
-      void startAudio()
+    const onAudioChange = () => syncTrainAudioUi()
+    audio.addEventListener('play', onAudioChange)
+    audio.addEventListener('pause', onAudioChange)
+    audio.addEventListener('volumechange', onAudioChange)
+
+    return () => {
+      audio.removeEventListener('play', onAudioChange)
+      audio.removeEventListener('pause', onAudioChange)
+      audio.removeEventListener('volumechange', onAudioChange)
     }
-  }, [view, startAudio, syncBackgroundAudioUi])
+  }, [syncTrainAudioUi])
+
+  useEffect(() => {
+    const platformAudio = platformAudioRef.current
+    if (!platformAudio) return
+
+    if (view === 'train') {
+      platformAudio.pause()
+      syncPlatformAudioUi()
+      void startTrainAudio()
+      return
+    }
+
+    stopTrainAudio()
+
+    if (AMBIENT_VIEWS.has(view)) {
+      void startPlatformAudio()
+    }
+  }, [
+    view,
+    startPlatformAudio,
+    startTrainAudio,
+    stopTrainAudio,
+    syncPlatformAudioUi,
+  ])
 
   const togglePlatformMute = async () => {
-    const audio = audioRef.current
+    const audio = platformAudioRef.current
     if (!audio) return
 
     audio.loop = true
@@ -117,16 +173,41 @@ function App() {
           /* ignore */
         }
       }
-      syncBackgroundAudioUi()
+      syncPlatformAudioUi()
       return
     }
 
     audio.muted = true
-    syncBackgroundAudioUi()
+    syncPlatformAudioUi()
   }
 
-  const toggleTrainVideoMute = () => {
-    setTrainVideoMuted((prev) => !prev)
+  const toggleTrainMute = async () => {
+    const audio = trainAudioRef.current
+    if (!audio) return
+
+    audio.loop = true
+    audio.volume = AMBIENT_VOLUME
+
+    const shouldTurnOn = audio.paused || audio.muted
+
+    if (shouldTurnOn) {
+      audio.muted = false
+      try {
+        await audio.play()
+      } catch {
+        try {
+          audio.muted = true
+          await audio.play()
+        } catch {
+          /* ignore */
+        }
+      }
+      syncTrainAudioUi()
+      return
+    }
+
+    audio.muted = true
+    syncTrainAudioUi()
   }
 
   const openWeightMachine = () => {
@@ -149,15 +230,12 @@ function App() {
   const layerClass = (id) =>
     `experience__layer${view === id ? ' experience__layer--active' : ''}`
 
-  if (isMobile) {
-    return <DesktopOnlyScreen />
-  }
-
   return (
     <div className="experience">
       <div className="experience__canvas">
         <div className={layerClass('platform')} aria-hidden={view !== 'platform'}>
           <PlatformView
+            isMobile={isMobile}
             exploreActiveId={exploreActiveId}
             onExploreActiveChange={setExploreActiveId}
             onOpenWeightMachine={openWeightMachine}
@@ -166,22 +244,23 @@ function App() {
           />
         </div>
 
-        <div className={layerClass('ticket')} aria-hidden={view !== 'ticket'}>
-          <PhysicalTicketExperience />
-        </div>
+        {!isMobile ? (
+          <>
+            <div className={layerClass('ticket')} aria-hidden={view !== 'ticket'}>
+              <PhysicalTicketExperience />
+            </div>
 
-        <div className={layerClass('weight')} aria-hidden={view !== 'weight'}>
-          <WeightMachineExperience
-            step={weightStep}
-            onStepChange={setWeightStep}
-          />
-        </div>
+            <div className={layerClass('weight')} aria-hidden={view !== 'weight'}>
+              <WeightMachineExperience
+                step={weightStep}
+                onStepChange={setWeightStep}
+              />
+            </div>
+          </>
+        ) : null}
 
         <div className={layerClass('train')} aria-hidden={view !== 'train'}>
-          <InsideTrainExperience
-            isActive={view === 'train'}
-            videoMuted={trainVideoMuted}
-          />
+          <InsideTrainExperience isActive={view === 'train'} />
         </div>
 
         {view !== 'platform' ? (
@@ -189,9 +268,9 @@ function App() {
         ) : null}
 
         {view === 'train' ? (
-          <TrainVideoMuteControl
-            isMuted={trainVideoMuted}
-            onToggleMute={toggleTrainVideoMute}
+          <AudioSourceControls
+            isBackgroundSilent={isTrainAudioSilent}
+            onToggleMute={toggleTrainMute}
           />
         ) : (
           <AudioSourceControls
@@ -201,7 +280,20 @@ function App() {
         )}
       </div>
 
-      <audio ref={audioRef} src={AUDIO_SRC} preload="auto" loop playsInline />
+      <audio
+        ref={platformAudioRef}
+        src={PLATFORM_AUDIO_SRC}
+        preload="auto"
+        loop
+        playsInline
+      />
+      <audio
+        ref={trainAudioRef}
+        src={TRAIN_AUDIO_SRC}
+        preload="auto"
+        loop
+        playsInline
+      />
     </div>
   )
 }

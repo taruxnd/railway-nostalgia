@@ -1,9 +1,10 @@
 import ExploreRail from '../components/ExploreRail'
 
-const DESKTOP_IMAGE = '/assets/desktop%20view%20image.png'
-const MOBILE_IMAGE = '/assets/mobile%20view%20image.png'
+const DESKTOP_IMAGE = '/assets/dphoto.png'
+const MOBILE_IMAGE = '/assets/mphoto.png'
 
 export default function PlatformView({
+  isMobile = false,
   exploreActiveId,
   onExploreActiveChange,
   onOpenWeightMachine,
@@ -24,6 +25,7 @@ export default function PlatformView({
       </picture>
 
       <ExploreRail
+        isMobile={isMobile}
         activeId={exploreActiveId}
         onExploreActiveChange={onExploreActiveChange}
         onOpenWeightMachine={onOpenWeightMachine}
