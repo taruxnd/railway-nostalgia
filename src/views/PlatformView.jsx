@@ -1,4 +1,5 @@
 import ExploreRail from '../components/ExploreRail'
+import ExperienceTitle from '../components/ExperienceTitle'
 
 const DESKTOP_IMAGE = '/assets/dphoto.png'
 const MOBILE_IMAGE = '/assets/mphoto.png'
@@ -23,6 +24,8 @@ export default function PlatformView({
           fetchPriority="high"
         />
       </picture>
+
+      <ExperienceTitle />
 
       <ExploreRail
         isMobile={isMobile}

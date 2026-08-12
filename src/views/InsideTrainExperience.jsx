@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import ExperienceTitle from '../components/ExperienceTitle'
 import './InsideTrainExperience.css'
 
 const DESKTOP_VIDEO = '/assets/inview%20desktop.mp4'
@@ -57,6 +58,7 @@ export default function InsideTrainExperience({ isActive }) {
         preload="auto"
         aria-hidden="true"
       />
+      {isActive ? <ExperienceTitle /> : null}
     </div>
   )
 }

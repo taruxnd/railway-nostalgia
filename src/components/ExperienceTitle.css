@@ -1,0 +1,44 @@
+.experience-title {
+  position: absolute;
+  z-index: 3;
+  top: max(3.25rem, calc(2.75rem + env(safe-area-inset-top)));
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  max-width: min(22rem, calc(100vw - 2rem));
+  padding: 0 0.35rem;
+  box-sizing: border-box;
+  text-align: center;
+  font-family:
+    'Shivaraja',
+    'Yatra One',
+    'Akshar',
+    'Teko',
+    'Modak',
+    system-ui,
+    sans-serif;
+  font-weight: 400;
+  font-size: clamp(2rem, 7.5vw, 2.55rem);
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  color: rgba(255, 250, 242, 0.94);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.55),
+    0 2px 10px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  white-space: nowrap;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (min-width: 768px) {
+  .experience-title {
+    top: max(3.75rem, calc(3.25rem + env(safe-area-inset-top)));
+    max-width: min(48rem, calc(100vw - 14rem));
+    font-size: clamp(3.25rem, 5vw, 4.5rem);
+    letter-spacing: 0.025em;
+    text-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.5),
+      0 3px 12px rgba(0, 0, 0, 0.38);
+  }
+}
