@@ -25,7 +25,7 @@ const CARDS = [
     title: 'Enter the Train',
     description: 'Cross the threshold into the compartment and the story.',
     desktopAssetSrc: '/assets/inview%20desktop.mp4',
-    mobileAssetSrc: '/assets/mview%20mobile.mp4',
+    mobileAssetSrc: '/assets/mviewmobile.mp4',
     assetVideo: true,
     desktopOnly: false,
   },

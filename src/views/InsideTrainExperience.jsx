@@ -3,7 +3,7 @@ import ExperienceTitle from '../components/ExperienceTitle'
 import './InsideTrainExperience.css'
 
 const DESKTOP_VIDEO = '/assets/inview%20desktop.mp4'
-const MOBILE_VIDEO = '/assets/mview%20mobile.mp4'
+const MOBILE_VIDEO = '/assets/mviewmobile.mp4'
 const MOBILE_QUERY = '(max-width: 767px)'
 
 export default function InsideTrainExperience({ isActive }) {
@@ -58,7 +58,7 @@ export default function InsideTrainExperience({ isActive }) {
         preload="auto"
         aria-hidden="true"
       />
-      {isActive ? <ExperienceTitle /> : null}
+      {isActive ? <ExperienceTitle variant="train" /> : null}
     </div>
   )
 }
