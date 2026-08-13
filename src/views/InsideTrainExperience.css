@@ -17,4 +17,9 @@
   width: auto;
   height: auto;
   object-fit: contain;
+  opacity: 0;
+}
+
+.inside-train__video--ready {
+  opacity: 1;
 }

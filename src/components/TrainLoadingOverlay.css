@@ -1,0 +1,94 @@
+.train-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a0b0d;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+  pointer-events: auto;
+}
+
+.train-loader--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.train-loader__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.15rem;
+  width: min(18rem, calc(100% - 2rem));
+  font-family:
+    'DM Sans',
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+.train-loader__scene {
+  position: relative;
+  width: 100%;
+  height: 2.75rem;
+  overflow: hidden;
+}
+
+.train-loader__track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.35rem;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 248, 238, 0.38) 0 10px,
+    transparent 10px 16px
+  );
+  opacity: 0.7;
+}
+
+.train-loader__train {
+  position: absolute;
+  bottom: 0.45rem;
+  left: 0;
+  color: rgba(255, 248, 238, 0.88);
+  animation: train-loader-move 3.6s linear infinite;
+}
+
+.train-loader__engine {
+  display: block;
+}
+
+.train-loader__message {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgba(255, 248, 238, 0.72);
+  text-align: center;
+}
+
+.train-loader__retry {
+  min-width: 7.5rem;
+}
+
+@keyframes train-loader-move {
+  0% {
+    transform: translateX(-80%);
+  }
+
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .train-loader__train {
+    animation: none;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
