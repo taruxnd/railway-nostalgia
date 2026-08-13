@@ -10,9 +10,7 @@ import './styles/glass.css'
 import './App.css'
 
 const PLATFORM_AUDIO_SRC = '/assets/audio.mp3'
-const TRAIN_AUDIO_SRC = `/assets/${encodeURIComponent(
-  'Inside Train Sound Effects [Free Audio] (Loopable) - Sound Bytes (128k).mp3',
-)}`
+const TRAIN_AUDIO_SRC = '/assets/newtrainsound.mp3'
 const AMBIENT_VOLUME = 0.22
 
 const AMBIENT_VIEWS = new Set(['platform', 'ticket', 'weight'])
