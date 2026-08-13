@@ -45,7 +45,7 @@
 
 @media (max-width: 767px) {
   .experience-title--train {
-    top: max(7.5rem, calc(26vh + env(safe-area-inset-top) * 0.2));
+    top: calc(20vh + env(safe-area-inset-top, 0px));
     font-size: clamp(1.45rem, 6.2vw, 1.85rem);
     max-width: min(16rem, calc(100vw - 2rem));
   }
