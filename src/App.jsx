@@ -14,16 +14,42 @@ const TRAIN_AUDIO_SRC = '/assets/newtrainsound.mp3'
 const AMBIENT_VOLUME = 0.22
 
 const AMBIENT_VIEWS = new Set(['platform', 'ticket', 'weight'])
+const UNLOCK_EVENTS = ['pointerdown', 'touchstart', 'click', 'keydown']
+
+async function playUnmuted(audio, syncUi) {
+  if (!audio) return false
+
+  audio.loop = true
+  audio.volume = AMBIENT_VOLUME
+  audio.muted = false
+
+  if (!audio.paused) {
+    syncUi()
+    return true
+  }
+
+  try {
+    await audio.play()
+    syncUi()
+    return !audio.paused && !audio.muted
+  } catch {
+    syncUi()
+    return false
+  }
+}
 
 function App() {
   const isMobile = useIsMobileViewport()
   const platformAudioRef = useRef(null)
   const trainAudioRef = useRef(null)
+  const viewRef = useRef('train')
   const [isBackgroundSilent, setIsBackgroundSilent] = useState(true)
   const [isTrainAudioSilent, setIsTrainAudioSilent] = useState(true)
-  const [view, setView] = useState('platform')
+  const [view, setView] = useState('train')
   const [weightStep, setWeightStep] = useState('machine')
   const [exploreActiveId, setExploreActiveId] = useState(null)
+
+  viewRef.current = view
 
   const syncPlatformAudioUi = useCallback(() => {
     const audio = platformAudioRef.current
@@ -46,53 +72,24 @@ function App() {
   }, [syncTrainAudioUi])
 
   const startPlatformAudio = useCallback(async () => {
-    const audio = platformAudioRef.current
-    if (!audio) return
-
-    audio.loop = true
-    audio.volume = AMBIENT_VOLUME
-
-    try {
-      audio.muted = false
-      await audio.play()
-    } catch {
-      try {
-        audio.muted = true
-        await audio.play()
-      } catch {
-        /* blocked until user interacts */
-      }
-    }
-
-    syncPlatformAudioUi()
+    await playUnmuted(platformAudioRef.current, syncPlatformAudioUi)
   }, [syncPlatformAudioUi])
 
   const startTrainAudio = useCallback(async () => {
-    const audio = trainAudioRef.current
-    if (!audio) return
-
-    audio.loop = true
-    audio.volume = AMBIENT_VOLUME
-
-    if (!audio.paused) {
-      syncTrainAudioUi()
-      return
-    }
-
-    try {
-      audio.muted = false
-      await audio.play()
-    } catch {
-      try {
-        audio.muted = true
-        await audio.play()
-      } catch {
-        /* blocked until user interacts */
-      }
-    }
-
-    syncTrainAudioUi()
+    await playUnmuted(trainAudioRef.current, syncTrainAudioUi)
   }, [syncTrainAudioUi])
+
+  const unlockCurrentAudio = useCallback(async () => {
+    if (viewRef.current === 'train') {
+      return playUnmuted(trainAudioRef.current, syncTrainAudioUi)
+    }
+
+    if (AMBIENT_VIEWS.has(viewRef.current)) {
+      return playUnmuted(platformAudioRef.current, syncPlatformAudioUi)
+    }
+
+    return false
+  }, [syncPlatformAudioUi, syncTrainAudioUi])
 
   useEffect(() => {
     const audio = platformAudioRef.current
@@ -150,6 +147,30 @@ function App() {
     syncPlatformAudioUi,
   ])
 
+  useEffect(() => {
+    const onGesture = () => {
+      void unlockCurrentAudio().then((started) => {
+        if (!started) return
+        UNLOCK_EVENTS.forEach((eventName) => {
+          window.removeEventListener(eventName, onGesture, true)
+        })
+      })
+    }
+
+    UNLOCK_EVENTS.forEach((eventName) => {
+      window.addEventListener(eventName, onGesture, {
+        capture: true,
+        passive: true,
+      })
+    })
+
+    return () => {
+      UNLOCK_EVENTS.forEach((eventName) => {
+        window.removeEventListener(eventName, onGesture, true)
+      })
+    }
+  }, [unlockCurrentAudio])
+
   const togglePlatformMute = async () => {
     const audio = platformAudioRef.current
     if (!audio) return
@@ -160,18 +181,7 @@ function App() {
     const shouldTurnOn = audio.paused || audio.muted
 
     if (shouldTurnOn) {
-      audio.muted = false
-      try {
-        await audio.play()
-      } catch {
-        try {
-          audio.muted = true
-          await audio.play()
-        } catch {
-          /* ignore */
-        }
-      }
-      syncPlatformAudioUi()
+      await playUnmuted(audio, syncPlatformAudioUi)
       return
     }
 
@@ -189,18 +199,7 @@ function App() {
     const shouldTurnOn = audio.paused || audio.muted
 
     if (shouldTurnOn) {
-      audio.muted = false
-      try {
-        await audio.play()
-      } catch {
-        try {
-          audio.muted = true
-          await audio.play()
-        } catch {
-          /* ignore */
-        }
-      }
-      syncTrainAudioUi()
+      await playUnmuted(audio, syncTrainAudioUi)
       return
     }
 
@@ -233,6 +232,7 @@ function App() {
       <div className="experience__canvas">
         <div className={layerClass('platform')} aria-hidden={view !== 'platform'}>
           <PlatformView
+            isActive={view === 'platform'}
             isMobile={isMobile}
             exploreActiveId={exploreActiveId}
             onExploreActiveChange={setExploreActiveId}

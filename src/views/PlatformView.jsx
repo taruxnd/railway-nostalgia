@@ -1,10 +1,20 @@
+import { useEffect, useRef, useState } from 'react'
 import ExploreRail from '../components/ExploreRail'
 import ExperienceTitle from '../components/ExperienceTitle'
 
-const DESKTOP_IMAGE = '/assets/dphoto.png'
-const MOBILE_IMAGE = '/assets/mphoto.png'
+const DESKTOP_VIDEO = '/assets/platformnew.mp4'
+const MOBILE_VIDEO = '/assets/platformphone.mp4'
+const MOBILE_QUERY = '(max-width: 767px)'
+
+function getPlatformVideoSrc() {
+  if (typeof window === 'undefined') return DESKTOP_VIDEO
+  return window.matchMedia(MOBILE_QUERY).matches
+    ? MOBILE_VIDEO
+    : DESKTOP_VIDEO
+}
 
 export default function PlatformView({
+  isActive = false,
   isMobile = false,
   exploreActiveId,
   onExploreActiveChange,
@@ -12,18 +22,53 @@ export default function PlatformView({
   onOpenInsideTrain,
   onOpenPhysicalTicket,
 }) {
+  const videoRef = useRef(null)
+  const [videoSrc, setVideoSrc] = useState(getPlatformVideoSrc)
+
+  useEffect(() => {
+    const media = window.matchMedia(MOBILE_QUERY)
+    const update = () => {
+      setVideoSrc(media.matches ? MOBILE_VIDEO : DESKTOP_VIDEO)
+    }
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    video.muted = true
+    video.defaultMuted = true
+    video.volume = 0
+    video.loop = true
+
+    if (!isActive) {
+      video.pause()
+      return
+    }
+
+    void video.play().catch(() => {
+      /* autoplay may be blocked; video stays muted */
+    })
+  }, [isActive, videoSrc])
+
   return (
     <>
-      <picture className="experience__picture">
-        <source media="(min-width: 768px)" srcSet={DESKTOP_IMAGE} />
-        <img
+      <div className="experience__picture">
+        <video
+          key={videoSrc}
+          ref={videoRef}
           className="experience__image"
-          src={MOBILE_IMAGE}
-          alt=""
-          decoding="async"
-          fetchPriority="high"
+          src={videoSrc}
+          loop
+          muted
+          playsInline
+          preload="auto"
+          aria-hidden="true"
         />
-      </picture>
+      </div>
 
       <ExperienceTitle />
 
