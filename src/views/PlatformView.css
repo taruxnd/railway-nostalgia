@@ -1,4 +1,4 @@
-.inside-train {
+.platform-view {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -10,17 +10,11 @@
   background: #000;
 }
 
-.inside-train__video {
-  display: block;
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
-  height: auto;
-  object-fit: contain;
+.platform-view__video {
   opacity: 0;
   transition: opacity 0.4s ease;
 }
 
-.inside-train__video--ready {
+.platform-view__video--ready {
   opacity: 1;
 }

@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import ExploreRail from '../components/ExploreRail'
 import ExperienceTitle from '../components/ExperienceTitle'
+import TrainLoadingOverlay from '../components/TrainLoadingOverlay'
+import useExperienceVideo from '../hooks/useExperienceVideo'
+import './PlatformView.css'
 
 const DESKTOP_VIDEO = '/assets/platformnew.mp4'
 const MOBILE_VIDEO = '/assets/platformnewfinal.mp4'
@@ -18,8 +21,12 @@ export default function PlatformView({
   onOpenInsideTrain,
   muteControl,
 }) {
-  const videoRef = useRef(null)
   const [videoSrc, setVideoSrc] = useState(getPlatformVideoSrc)
+  const { videoRef, retryToken, loadStatus, hasRevealed, retryLoad } =
+    useExperienceVideo({
+      isActive,
+      videoSrc,
+    })
 
   useEffect(() => {
     const media = window.matchMedia(MOBILE_QUERY)
@@ -31,32 +38,13 @@ export default function PlatformView({
     return () => media.removeEventListener('change', update)
   }, [])
 
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-
-    video.muted = true
-    video.defaultMuted = true
-    video.volume = 0
-    video.loop = true
-
-    if (!isActive) {
-      video.pause()
-      return
-    }
-
-    void video.play().catch(() => {
-      /* autoplay may be blocked; video stays muted */
-    })
-  }, [isActive, videoSrc])
-
   return (
-    <>
+    <div className="platform-view">
       <div className="experience__picture">
         <video
-          key={videoSrc}
+          key={`${videoSrc}-${retryToken}`}
           ref={videoRef}
-          className="experience__image"
+          className={`experience__image platform-view__video${hasRevealed ? ' platform-view__video--ready' : ''}`}
           src={videoSrc}
           loop
           muted
@@ -66,12 +54,16 @@ export default function PlatformView({
         />
       </div>
 
-      <ExperienceTitle />
+      {isActive && hasRevealed ? <ExperienceTitle /> : null}
 
       <ExploreRail
         muteControl={muteControl}
         onOpenInsideTrain={onOpenInsideTrain}
       />
-    </>
+
+      {isActive ? (
+        <TrainLoadingOverlay status={loadStatus} onRetry={retryLoad} />
+      ) : null}
+    </div>
   )
 }
