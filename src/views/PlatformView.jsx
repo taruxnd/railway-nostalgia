@@ -3,7 +3,7 @@ import ExploreRail from '../components/ExploreRail'
 import ExperienceTitle from '../components/ExperienceTitle'
 
 const DESKTOP_VIDEO = '/assets/platformnew.mp4'
-const MOBILE_VIDEO = '/assets/platformphone.mp4'
+const MOBILE_VIDEO = '/assets/platformnewfinal.mp4'
 const MOBILE_QUERY = '(max-width: 767px)'
 
 function getPlatformVideoSrc() {
@@ -15,12 +15,8 @@ function getPlatformVideoSrc() {
 
 export default function PlatformView({
   isActive = false,
-  isMobile = false,
-  exploreActiveId,
-  onExploreActiveChange,
-  onOpenWeightMachine,
   onOpenInsideTrain,
-  onOpenPhysicalTicket,
+  muteControl,
 }) {
   const videoRef = useRef(null)
   const [videoSrc, setVideoSrc] = useState(getPlatformVideoSrc)
@@ -73,12 +69,8 @@ export default function PlatformView({
       <ExperienceTitle />
 
       <ExploreRail
-        isMobile={isMobile}
-        activeId={exploreActiveId}
-        onExploreActiveChange={onExploreActiveChange}
-        onOpenWeightMachine={onOpenWeightMachine}
+        muteControl={muteControl}
         onOpenInsideTrain={onOpenInsideTrain}
-        onOpenPhysicalTicket={onOpenPhysicalTicket}
       />
     </>
   )

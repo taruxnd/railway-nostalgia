@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import AudioSourceControls from './components/AudioSourceControls'
+import AudioCredits from './components/AudioCredits'
 import GlassBackButton from './components/GlassBackButton'
-import useIsMobileViewport from './hooks/useIsMobileViewport'
 import PlatformView from './views/PlatformView'
-import WeightMachineExperience from './views/WeightMachineExperience'
 import InsideTrainExperience from './views/InsideTrainExperience'
-import PhysicalTicketExperience from './views/PhysicalTicketExperience'
 import './styles/glass.css'
 import './App.css'
 
@@ -13,7 +11,7 @@ const PLATFORM_AUDIO_SRC = '/assets/audio.mp3'
 const TRAIN_AUDIO_SRC = '/assets/newtrainsound.mp3'
 const AMBIENT_VOLUME = 0.22
 
-const AMBIENT_VIEWS = new Set(['platform', 'ticket', 'weight'])
+const AMBIENT_VIEWS = new Set(['platform'])
 const UNLOCK_EVENTS = ['pointerdown', 'touchstart', 'click', 'keydown']
 
 async function playUnmuted(audio, syncUi) {
@@ -39,15 +37,12 @@ async function playUnmuted(audio, syncUi) {
 }
 
 function App() {
-  const isMobile = useIsMobileViewport()
   const platformAudioRef = useRef(null)
   const trainAudioRef = useRef(null)
-  const viewRef = useRef('train')
+  const viewRef = useRef('platform')
   const [isBackgroundSilent, setIsBackgroundSilent] = useState(true)
   const [isTrainAudioSilent, setIsTrainAudioSilent] = useState(true)
-  const [view, setView] = useState('train')
-  const [weightStep, setWeightStep] = useState('machine')
-  const [exploreActiveId, setExploreActiveId] = useState(null)
+  const [view, setView] = useState('platform')
 
   viewRef.current = view
 
@@ -207,17 +202,8 @@ function App() {
     syncTrainAudioUi()
   }
 
-  const openWeightMachine = () => {
-    setWeightStep('machine')
-    setView('weight')
-  }
-
   const openInsideTrain = () => {
     setView('train')
-  }
-
-  const openPhysicalTicket = () => {
-    setView('ticket')
   }
 
   const backToPlatform = () => {
@@ -233,29 +219,15 @@ function App() {
         <div className={layerClass('platform')} aria-hidden={view !== 'platform'}>
           <PlatformView
             isActive={view === 'platform'}
-            isMobile={isMobile}
-            exploreActiveId={exploreActiveId}
-            onExploreActiveChange={setExploreActiveId}
-            onOpenWeightMachine={openWeightMachine}
             onOpenInsideTrain={openInsideTrain}
-            onOpenPhysicalTicket={openPhysicalTicket}
+            muteControl={
+              <AudioSourceControls
+                isBackgroundSilent={isBackgroundSilent}
+                onToggleMute={togglePlatformMute}
+              />
+            }
           />
         </div>
-
-        {!isMobile ? (
-          <>
-            <div className={layerClass('ticket')} aria-hidden={view !== 'ticket'}>
-              <PhysicalTicketExperience />
-            </div>
-
-            <div className={layerClass('weight')} aria-hidden={view !== 'weight'}>
-              <WeightMachineExperience
-                step={weightStep}
-                onStepChange={setWeightStep}
-              />
-            </div>
-          </>
-        ) : null}
 
         <div className={layerClass('train')} aria-hidden={view !== 'train'}>
           <InsideTrainExperience isActive={view === 'train'} />
@@ -267,14 +239,12 @@ function App() {
 
         {view === 'train' ? (
           <AudioSourceControls
+            placement="solo"
             isBackgroundSilent={isTrainAudioSilent}
             onToggleMute={toggleTrainMute}
           />
         ) : (
-          <AudioSourceControls
-            isBackgroundSilent={isBackgroundSilent}
-            onToggleMute={togglePlatformMute}
-          />
+          <AudioCredits />
         )}
       </div>
 
