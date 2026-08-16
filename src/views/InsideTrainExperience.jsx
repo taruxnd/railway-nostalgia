@@ -43,6 +43,7 @@ export default function InsideTrainExperience({ isActive }) {
         loop
         muted
         playsInline
+        webkit-playsinline="true"
         preload="auto"
         aria-hidden="true"
       />

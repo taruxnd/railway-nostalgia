@@ -50,6 +50,7 @@ export default function PlatformView({
           loop
           muted
           playsInline
+          webkit-playsinline="true"
           preload="auto"
           aria-hidden="true"
         />

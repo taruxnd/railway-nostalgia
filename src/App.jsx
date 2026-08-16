@@ -42,6 +42,7 @@ function App() {
   const [isBackgroundSilent, setIsBackgroundSilent] = useState(true)
   const [isTrainAudioSilent, setIsTrainAudioSilent] = useState(true)
   const [view, setView] = useState('platform')
+  const [trainVisited, setTrainVisited] = useState(false)
 
   viewRef.current = view
 
@@ -202,6 +203,7 @@ function App() {
   }
 
   const openInsideTrain = () => {
+    setTrainVisited(true)
     setView('train')
   }
 
@@ -228,9 +230,11 @@ function App() {
           />
         </div>
 
-        <div className={layerClass('train')} aria-hidden={view !== 'train'}>
-          <InsideTrainExperience isActive={view === 'train'} />
-        </div>
+        {trainVisited ? (
+          <div className={layerClass('train')} aria-hidden={view !== 'train'}>
+            <InsideTrainExperience isActive={view === 'train'} />
+          </div>
+        ) : null}
 
         {view !== 'platform' ? (
           <GlassBackButton onClick={backToPlatform} />
@@ -255,7 +259,7 @@ function App() {
       <audio
         ref={trainAudioRef}
         src={TRAIN_AUDIO_SRC}
-        preload="auto"
+        preload={view === 'train' ? 'auto' : 'none'}
         loop
         playsInline
       />
