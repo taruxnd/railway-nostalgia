@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import AudioSourceControls from './components/AudioSourceControls'
-import AudioCredits from './components/AudioCredits'
 import GlassBackButton from './components/GlassBackButton'
 import PlatformView from './views/PlatformView'
 import InsideTrainExperience from './views/InsideTrainExperience'
@@ -243,9 +242,7 @@ function App() {
             isBackgroundSilent={isTrainAudioSilent}
             onToggleMute={toggleTrainMute}
           />
-        ) : (
-          <AudioCredits />
-        )}
+        ) : null}
       </div>
 
       <audio

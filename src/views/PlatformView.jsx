@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import ExploreRail from '../components/ExploreRail'
 import ExperienceTitle from '../components/ExperienceTitle'
+import AudioCredits from '../components/AudioCredits'
 import TrainLoadingOverlay from '../components/TrainLoadingOverlay'
 import useExperienceVideo from '../hooks/useExperienceVideo'
 import './PlatformView.css'
@@ -55,6 +56,7 @@ export default function PlatformView({
       </div>
 
       {isActive && hasRevealed ? <ExperienceTitle /> : null}
+      {isActive && hasRevealed ? <AudioCredits /> : null}
 
       <ExploreRail
         muteControl={muteControl}
