@@ -24,20 +24,25 @@ function TrainIllustration() {
   )
 }
 
-export default function TrainLoadingOverlay({ status, onRetry }) {
+export default function TrainLoadingOverlay({
+  status,
+  onRetry,
+  message = 'Entering the train...',
+  errorMessage = "Couldn't load the train view",
+}) {
   const isError = status === 'error'
-  const isHidden = status === 'ready'
+  const isVisible = status === 'loading' || status === 'error'
 
   return (
     <div
-      className={`train-loader${isHidden ? ' train-loader--hidden' : ''}`}
+      className={`train-loader${isVisible ? '' : ' train-loader--hidden'}`}
       aria-live="polite"
-      aria-hidden={isHidden}
+      aria-hidden={!isVisible}
     >
       <div className="train-loader__content">
         {isError ? (
           <>
-            <p className="train-loader__message">Couldn&apos;t load the train view</p>
+            <p className="train-loader__message">{errorMessage}</p>
             <button
               type="button"
               className="glass-button train-loader__retry"
@@ -54,7 +59,7 @@ export default function TrainLoadingOverlay({ status, onRetry }) {
               </div>
               <div className="train-loader__track" />
             </div>
-            <p className="train-loader__message">Entering the train...</p>
+            <p className="train-loader__message">{message}</p>
           </>
         )}
       </div>

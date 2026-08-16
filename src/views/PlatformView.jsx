@@ -62,7 +62,12 @@ export default function PlatformView({
       />
 
       {isActive ? (
-        <TrainLoadingOverlay status={loadStatus} onRetry={retryLoad} />
+        <TrainLoadingOverlay
+          status={loadStatus}
+          onRetry={retryLoad}
+          message="arriving at the platform"
+          errorMessage="Couldn't load the platform"
+        />
       ) : null}
     </div>
   )

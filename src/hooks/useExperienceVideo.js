@@ -1,23 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 const HAVE_FUTURE_DATA = 3
+const sessionReadySources = new Set()
 
 export default function useExperienceVideo({ isActive, videoSrc }) {
   const videoRef = useRef(null)
+  const hasRevealedRef = useRef(false)
   const [retryToken, setRetryToken] = useState(0)
   const [loadStatus, setLoadStatus] = useState('idle')
   const [hasRevealed, setHasRevealed] = useState(false)
+  const sourceKey = `${videoSrc}:${retryToken}`
+  const [activeSourceKey, setActiveSourceKey] = useState(sourceKey)
 
-  useEffect(() => {
-    if (!isActive) {
-      setLoadStatus('idle')
-      setHasRevealed(false)
-      return
-    }
+  hasRevealedRef.current = hasRevealed
 
-    setLoadStatus('loading')
+  if (activeSourceKey !== sourceKey) {
+    setActiveSourceKey(sourceKey)
+    hasRevealedRef.current = false
     setHasRevealed(false)
-  }, [isActive, videoSrc, retryToken])
+    setLoadStatus('idle')
+  }
 
   useEffect(() => {
     const video = videoRef.current
@@ -30,17 +32,61 @@ export default function useExperienceVideo({ isActive, videoSrc }) {
 
     if (!isActive) {
       video.pause()
-      video.currentTime = 0
       return
     }
 
     let cancelled = false
+    let waitingForPaint = false
+    let onTimeUpdate = null
+    let rafId = 0
+
+    const clearTimeUpdate = () => {
+      if (!onTimeUpdate) return
+      video.removeEventListener('timeupdate', onTimeUpdate)
+      onTimeUpdate = null
+    }
 
     const markReady = () => {
       if (cancelled) return
       if (video.paused || video.readyState < HAVE_FUTURE_DATA) return
+      sessionReadySources.add(videoSrc)
+      hasRevealedRef.current = true
       setHasRevealed(true)
       setLoadStatus('ready')
+    }
+
+    const revealWhenPlaying = () => {
+      if (cancelled || waitingForPaint) return
+      if (video.paused || video.readyState < HAVE_FUTURE_DATA) return
+      waitingForPaint = true
+
+      const finish = () => {
+        if (cancelled) return
+        clearTimeUpdate()
+        markReady()
+      }
+
+      if (!video.paused && video.readyState >= HAVE_FUTURE_DATA) {
+        if (
+          typeof video.requestVideoFrameCallback === 'function' &&
+          !hasRevealedRef.current
+        ) {
+          video.requestVideoFrameCallback(() => {
+            if (cancelled || video.paused) return
+            finish()
+          })
+        } else {
+          finish()
+        }
+      }
+
+      const startTime = video.currentTime
+      onTimeUpdate = () => {
+        if (cancelled || video.paused) return
+        if (video.currentTime === startTime && startTime === 0) return
+        finish()
+      }
+      video.addEventListener('timeupdate', onTimeUpdate)
     }
 
     const tryPlay = async () => {
@@ -54,10 +100,18 @@ export default function useExperienceVideo({ isActive, videoSrc }) {
 
       try {
         await video.play()
-        markReady()
+        if (cancelled) return
+        if (!video.paused) revealWhenPlaying()
       } catch {
-        /* keep loading rather than revealing a frozen frame */
+        if (cancelled || hasRevealedRef.current) return
+        setLoadStatus((status) => (status === 'error' ? status : 'loading'))
       }
+    }
+
+    const showLoaderIfStillNeeded = () => {
+      if (cancelled || hasRevealedRef.current) return
+      if (video.readyState >= HAVE_FUTURE_DATA) return
+      setLoadStatus((status) => (status === 'error' ? status : 'loading'))
     }
 
     const onCanPlay = () => {
@@ -65,11 +119,11 @@ export default function useExperienceVideo({ isActive, videoSrc }) {
     }
 
     const onPlaying = () => {
-      markReady()
+      revealWhenPlaying()
     }
 
     const onWaiting = () => {
-      if (cancelled) return
+      if (cancelled || hasRevealedRef.current) return
       if (video.readyState >= HAVE_FUTURE_DATA) return
       setLoadStatus((status) => (status === 'error' ? status : 'loading'))
     }
@@ -77,6 +131,9 @@ export default function useExperienceVideo({ isActive, videoSrc }) {
     const onError = () => {
       if (cancelled) return
       video.pause()
+      sessionReadySources.delete(videoSrc)
+      hasRevealedRef.current = false
+      setHasRevealed(false)
       setLoadStatus('error')
     }
 
@@ -88,11 +145,23 @@ export default function useExperienceVideo({ isActive, videoSrc }) {
     video.addEventListener('stalled', onWaiting)
     video.addEventListener('error', onError)
 
-    video.load()
-    void tryPlay()
+    const elementReady = video.readyState >= HAVE_FUTURE_DATA
+    const alreadyKnown = sessionReadySources.has(videoSrc)
+
+    if (elementReady || hasRevealedRef.current) {
+      void tryPlay()
+    } else if (alreadyKnown) {
+      void tryPlay()
+      rafId = window.requestAnimationFrame(showLoaderIfStillNeeded)
+    } else {
+      rafId = window.requestAnimationFrame(showLoaderIfStillNeeded)
+      void tryPlay()
+    }
 
     return () => {
       cancelled = true
+      window.cancelAnimationFrame(rafId)
+      clearTimeUpdate()
       video.removeEventListener('loadeddata', onCanPlay)
       video.removeEventListener('canplay', onCanPlay)
       video.removeEventListener('canplaythrough', onCanPlay)
@@ -104,9 +173,12 @@ export default function useExperienceVideo({ isActive, videoSrc }) {
   }, [isActive, videoSrc, retryToken])
 
   const retryLoad = useCallback(() => {
+    sessionReadySources.delete(videoSrc)
+    hasRevealedRef.current = false
+    setHasRevealed(false)
     setLoadStatus('loading')
     setRetryToken((token) => token + 1)
-  }, [])
+  }, [videoSrc])
 
   return { videoRef, retryToken, loadStatus, hasRevealed, retryLoad }
 }
